@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout code') {
+            steps {
+                git credentialsId: 'ede1d98f-db6f-4bb6-a01b-ad304616ed46', url: 'https://github.com/apalpant/gradle-jenkins'
+            }
+        }
+        stage('ansi') {
+            steps {
+                sh 'python --version'
+                ansiColor('xterm') {
+                  sh "ls -al"
+                }
+                ansiColor('vga') {
+                  echo '\033[42m\033[97mWhite letters, green background\033[0m'
+                }
+                ansiColor('xterm') {
+                    echo "TERM=${env.TERM}"
+                    echo '\033[34mHello\033[0m \033[33mcolorful\033[0m \033[35mworld!\033[0m'
+                }
+            }
+        }
+        stage('install dependencies') {
+            steps {
+                //sh 'python -m venv venv'
+                //sh '. venv/bin/activate'
+                //sh 'pip3 install flake8 pytest pytest-cov'
+                sh 'pip3 freeze > requirements.txt'
+                // sh 'pip3 install -r requirements.txt'
+            }   
+        }
+        stage('build') {
+            steps {
+                sh 'gradle packageDistribution'
+            }
+        }
+        stage('test') {
+            steps {
+                    //sh '. venv/bin/activate'
+                    // sh 'flake8 --exclude=venv* --statistics'
+                  //  sh 'pytest -v --cov=calculator'
+                 sh 'python src/test_calculator.py'
+            }
+        }   
+        stage('deploy') {
+            steps {
+                sh 'gradle publish'
+            }
+        }
+    }
+}
