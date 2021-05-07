@@ -28,7 +28,7 @@ task purge(type:Delete) {
 task vendor(type:Exec, dependsOn: purge) {
   //println 'Installing dependencies'
   executable 'sh'
-  args '-c', 'pip install pymongo flask'
+  args '-c', 'pip3 install flake8 pytest pytest-cov'
   standardOutput = new ByteArrayOutputStream()
   ext.output = { return standardOutput.toString() }
 }
