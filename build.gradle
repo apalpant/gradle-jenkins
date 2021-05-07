@@ -1,0 +1,98 @@
+apply plugin: "maven-publish"
+
+buildscript {
+  repositories {
+    gradlePluginPortal()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "gradle.plugin.org.swissphpfriends:php-build-plugin:0.1-SNAPSHOT"
+  }
+}
+
+apply plugin: "org.hasnat.php-build-plugin"
+apply plugin: "distribution"
+
+def majorVersion = System.getenv("MAJOR_VERSION") ?: "1"
+def minorVersion = System.getenv("MINOR_VERSION") ?: "0"
+version = majorVersion + "." + minorVersion 
+
+task purge(type:Delete) {
+  //println 'Cleaning up old files'
+  delete 'build/tmp/'
+   delete fileTree(dir: 'build' , include: '**/*.zip')
+}
+
+task vendor(type:Exec, dependsOn: purge) {
+  //println 'Installing dependencies'
+  executable 'sh'
+  args '-c', 'pip install pymongo flask'
+  standardOutput = new ByteArrayOutputStream()
+  ext.output = { return standardOutput.toString() }
+}
+
+// Exemple de task de test
+//task test(type:Exec, dependsOn: installDeps) {
+  //println 'Executing tests'
+  //executable 'sh'
+  //args '-c', "php \
+   // './project/vendor/phpunit/phpunit/phpunit' \
+   // --configuration='./project/phpunit.xml' \
+   // --log-junit='./logs/unitreport.xml'\
+   // ./project/tests"
+//}
+
+def tarfile = "application-" + version
+task packageDistribution(type: Zip, dependsOn: vendor) {
+    from ('src') { into 'src' }
+    archiveFileName = tarfile + ".zip"
+    destinationDirectory = file("build")
+}
+
+group = 'laravel-kingoludo'
+
+// gradle generatePomFileForMavenPublication
+// gradle publish
+// do not delete build folder cause pom-default is generated there
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+			pom {
+                name = 'My Library'
+                description = 'A concise description of my library'
+                url = 'http://www.example.com/library'
+                properties = [
+                    myProp: "value",
+                    "prop.with.dots": "anotherValue"
+                ]
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'johnd'
+                        name = 'John Doe'
+                        email = 'john.doe@example.com'
+                    }
+                }
+            }			
+            artifact source: packageDistribution, extension: 'zip'
+        }
+    }
+    repositories {
+        maven {
+			allowInsecureProtocol = true
+			url nexusRepo
+			credentials {
+                username nexusUsername
+                password nexusPassword
+            }
+		}
+    }
+}
