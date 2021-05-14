@@ -22,7 +22,7 @@ version = majorVersion + "." + minorVersion
 task purge(type:Delete) {
   //println 'Cleaning up old files'
   delete 'build/tmp/'
-   delete fileTree(dir: 'build' , include: '**/*.zip')
+  delete fileTree(dir: 'build' , include: '**/*.zip')
 }
 
 task vendor(type:Exec, dependsOn: purge) {
@@ -33,17 +33,6 @@ task vendor(type:Exec, dependsOn: purge) {
   ext.output = { return standardOutput.toString() }
 }
 
-// Exemple de task de test
-//task test(type:Exec, dependsOn: installDeps) {
-  //println 'Executing tests'
-  //executable 'sh'
-  //args '-c', "php \
-   // './project/vendor/phpunit/phpunit/phpunit' \
-   // --configuration='./project/phpunit.xml' \
-   // --log-junit='./logs/unitreport.xml'\
-   // ./project/tests"
-//}
-
 def tarfile = "application-" + version
 task packageDistribution(type: Zip, dependsOn: vendor) {
     from ('src') { into 'src' }
@@ -51,7 +40,7 @@ task packageDistribution(type: Zip, dependsOn: vendor) {
     destinationDirectory = file("build")
 }
 
-group = 'laravel-kingoludo'
+group = 'formation-devops'
 
 // gradle generatePomFileForMavenPublication
 // gradle publish
@@ -60,7 +49,7 @@ group = 'laravel-kingoludo'
 publishing {
     publications {
         maven(MavenPublication) {
-			pom {
+	    pom {
                 name = 'My Library'
                 description = 'A concise description of my library'
                 url = 'http://www.example.com/library'
@@ -87,12 +76,12 @@ publishing {
     }
     repositories {
         maven {
-			allowInsecureProtocol = true
-			url nexusRepo
-			credentials {
-                username nexusUsername
-                password nexusPassword
-            }
-		}
+		allowInsecureProtocol = true
+		url nexusRepo
+		credentials {
+                	username nexusUsername
+                	password nexusPassword
+            	}
+	}
     }
 }
